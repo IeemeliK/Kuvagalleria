@@ -9,7 +9,6 @@ const client = new S3Client({});
 export async function load({ fetch }) {
   const response = await fetch(Api.mongoApi.url)
 
-
   if (!response.ok) {
     throw new Error(response.statusText);
   }
@@ -17,14 +16,32 @@ export async function load({ fetch }) {
   /** @type Array.<{_id: string, imageName:string, imageUrl: string, imageText: string, imageKey: string, urlExpiresIn: number}> */
   const data = await response.json()
 
-  // TODO: update url in mongo
+  if (!data) {
+    return {
+      imageData: []
+    }
+  }
+
+  const ops = [];
+
   for (const d of data) {
     if (d.urlExpiresIn < Date.now()) {
+      console.log("hello");
       const command = new GetObjectCommand({
         Bucket: Bucket.bucket.bucketName,
         Key: d.imageKey
       })
-      await getSignedUrl(client, command, { expiresIn: 3600 });
+      const signedUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
+
+      ops.push({ ...d, _id: d._id, imageUrl: signedUrl, urlExpiresIn: Date.now() + 3600000, })
+
+      await fetch(Api.mongoApi.url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(ops)
+      })
     }
   }
 
@@ -50,17 +67,25 @@ export const actions = {
       Key: imageKey
     })
 
-    const response = await getSignedUrl(client, command, { expiresIn: 3600 });
+    const response = await client.send(command);
+
+    if (!response) return { success: false };
+
+    const getCommand = new GetObjectCommand({
+      Bucket: Bucket.bucket.bucketName,
+      Key: imageKey
+    })
+    const signedUrl = await getSignedUrl(client, getCommand, { expiresIn: 3600 });
 
     const imageData = {
       imageName: formData.get('otsikko'),
       imageText: formData.get('kuvateksti'),
       urlExpiresIn: Date.now() + 3600000,
-      imageUrl: response,
+      imageUrl: signedUrl,
       imageKey: imageKey
     }
 
-    const response2 = await fetch(Api.mongoApi.url, {
+    const mongoResponse = await fetch(Api.mongoApi.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -68,9 +93,9 @@ export const actions = {
       body: JSON.stringify(imageData)
     })
 
-    console.log(response2)
+    console.log(mongoResponse)
 
-    if (!response || response.$metadata.httpStatusCode != 200) return { success: false };
+    if (!mongoResponse.ok || mongoResponse.status !== 201) return { success: false };
 
     return { success: true };
   }

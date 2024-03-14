@@ -13,6 +13,8 @@ export function MyStack({ stack }: StackContext) {
     routes: {
       "GET /": "functions/database.getData",
       "POST /": "functions/database.addData",
+      "PUT /{id}": "functions/database.updateData",
+      "PUT /": "functions/database.bulkUpdate"
     },
   });
 
@@ -22,9 +24,10 @@ export function MyStack({ stack }: StackContext) {
         allowedMethods: [
           "GET",
           "POST",
-          "DELETE"
+          "DELETE",
+          "PUT"
         ],
-        allowedOrigins: ["http://localhost:5173"],
+        allowedOrigins: ["*"],
         allowedHeaders: ["*"],
       }
     ]

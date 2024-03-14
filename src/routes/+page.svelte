@@ -18,4 +18,6 @@
 	<h1>{image.imageName}</h1>
 	<p>{image.imageText}</p>
 	<img src={image.imageUrl} alt={image.imageName} height="200px" />
+{:else}
+	<p>Ei kuvia</p>
 {/each}
