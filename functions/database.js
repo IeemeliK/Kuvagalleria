@@ -3,6 +3,8 @@ import { MongoClient } from "mongodb";
 // Once we connect to the database once, we'll store that connection
 // and reuse it so that we don't have to connect to the database on every request.
 let cachedDb = null;
+const dbName = 'Images'
+const imageCollection = 'Imagedata'
 
 const connectToDatabase = async () => {
   if (cachedDb) {
@@ -14,7 +16,7 @@ const connectToDatabase = async () => {
   });
 
   // Specify which database we want to use
-  cachedDb = client.db("Testbase");
+  cachedDb = client.db(dbName);
 
   return cachedDb;
 }
@@ -31,7 +33,7 @@ export const getData = async (_evt, context) => {
   const db = await connectToDatabase();
 
   // Make a MongoDB MQL Query
-  const data = await db.collection("test").find({}).toArray();
+  const data = await db.collection(imageCollection).find({}).toArray();
 
   return {
     statusCode: 200,
@@ -47,7 +49,7 @@ export const addData = async (event, context) => {
   const db = await connectToDatabase();
 
   const body = JSON.parse(event.body);
-  const response = await db.collection("test").insertOne(body);
+  const response = await db.collection(imageCollection).insertOne(body);
 
   return {
     statusCode: 200,
