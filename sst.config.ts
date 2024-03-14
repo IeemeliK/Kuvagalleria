@@ -1,5 +1,5 @@
 import type { SSTConfig } from "sst";
-import { SvelteKitSite } from "sst/constructs";
+import { MyStack } from "./stacks/MyStack";
 
 export default {
   config(_input) {
@@ -10,11 +10,9 @@ export default {
     };
   },
   stacks(app) {
-    app.stack(function Site({ stack }) {
-      const site = new SvelteKitSite(stack, "site");
-      stack.addOutputs({
-        url: site.url,
-      });
-    });
+    app.stack(MyStack)
+    if (app.stage !== "prod") {
+      app.setDefaultRemovalPolicy("destroy");
+    }
   },
 } satisfies SSTConfig;
