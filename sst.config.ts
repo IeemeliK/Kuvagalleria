@@ -11,7 +11,7 @@ export default {
   },
   stacks(app) {
     app.stack(MyStack)
-    if (app.stage !== "prod") {
+    if (app.stage !== "production") {
       app.setDefaultRemovalPolicy("destroy");
     }
   },
