@@ -1,7 +1,9 @@
 import { Bucket } from 'sst/node/bucket';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '$env/static/private';
 
 const client = new S3Client({ region: 'eu-north-1' });
 
@@ -21,7 +23,15 @@ const generateSignedUrl = async (bucket, key) => {
 }
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ fetch }) {
+export async function load({ cookies, fetch }) {
+  const token = cookies.get('token');
+  if (!token) return redirect(302, '/login');
+
+  const verified = jwt.verify(token, JWT_SECRET);
+  if (!verified) {
+    cookies.delete('token', { path: '/' });
+    return redirect(302, '/login');
+  }
   const response = await fetch('/api/images')
 
   /** @type {import('$lib/customTypes').ImageData[]} */

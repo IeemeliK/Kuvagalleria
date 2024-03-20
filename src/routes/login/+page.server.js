@@ -1,18 +1,34 @@
-import { error, redirect } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
+import { verify } from 'argon2'
+import { connectToDatabase } from '$lib/server/dbconn';
+import { JWT_SECRET } from '$env/static/private';
+import jwt from 'jsonwebtoken';
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  login: async ({ cookies, request }) => {
+  default: async ({ cookies, request }) => {
     const data = await request.formData()
 
-    const username = data.get('username')
-    const password = data.get('password')
+    const username = /** @type {string} */(data.get('username'));
+    const password = /** @type {string} */(data.get('password'));
 
-    if (username === 'admin' && password === 'admin') {
-      return redirect(302, '/');
-    } else {
-      return error(401, 'Virheellinen käyttäjätunnus tai salasana')
-    }
+    const db = await connectToDatabase();
 
+    const user = await db.collection('users').findOne({ username: username });
+    if (!user) return fail(400, { username, incorrect: true })
+
+    const valid = await verify(user.hash, password);
+    if (!valid) return fail(400, { username, incorrect: true });
+
+    const token = jwt.sign({ user: username }, JWT_SECRET, { expiresIn: '3d' });
+    cookies.set('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 2592000,
+      path: '/'
+    });
+
+    return redirect(303, '/');
   }
 }

@@ -26,10 +26,6 @@ const generateSignedUrl = async (bucket, key) => {
 export async function GET() {
   const db = await connectToDatabase();
 
-  if (!db) {
-    return error(500, 'Could not connect to database')
-  }
-
   try {
     const data = await db.collection(collection).find({}).toArray();
     return json(data, { status: 200 });
@@ -42,10 +38,6 @@ export async function GET() {
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request }) {
   const db = await connectToDatabase();
-
-  if (!db) {
-    return error(500, 'Could not connect to database')
-  }
 
   const formData = await request.formData();
 
@@ -116,10 +108,6 @@ export async function PUT({ request }) {
 /** @type {import('./$types').RequestHandler} */
 export async function DELETE({ request }) {
   const db = await connectToDatabase();
-
-  if (!db) {
-    return error(500, 'Could not connect to database')
-  }
 
   const body = await request.json();
 

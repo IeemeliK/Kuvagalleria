@@ -38,6 +38,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.525.0",
     "@aws-sdk/s3-request-presigner": "^3.525.0",
+    "argon2": "^0.40.1",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.4.0"
   }
 }
