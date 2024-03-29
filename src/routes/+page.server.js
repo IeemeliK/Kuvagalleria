@@ -71,7 +71,7 @@ export async function load({ cookies, fetch }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  upload: async ({ request, fetch }) => {
+  default: async ({ request, fetch }) => {
     const formData = await request.formData();
 
     const mongoResponse = await fetch('/api/images', {

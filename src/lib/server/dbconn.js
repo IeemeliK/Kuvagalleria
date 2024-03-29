@@ -5,22 +5,17 @@ import { MongoClient } from 'mongodb';
 
 /** @type {import('mongodb').Db | null} */
 let cachedDb = null;
-const dbName = dev ? 'Devbase' : 'Images'
+const dbName = dev ? 'Devbase' : 'Images';
 
 export const connectToDatabase = async () => {
-  if (cachedDb) {
-    return cachedDb;
-  }
+	if (cachedDb) return cachedDb;
 
-  const client = await MongoClient.connect(MONGODB_URI);
+	const client = await MongoClient.connect(MONGODB_URI);
 
-  cachedDb = client.db(dbName);
+	cachedDb = client.db(dbName);
 
-  if (!cachedDb) {
-    error(500, 'Could not connect to database')
-  }
-
-  return cachedDb;
-}
+	if (!cachedDb) error(500, 'Could not connect to database');
+	return cachedDb;
+};
 
 export const collection = dev ? 'Devdata' : 'ImageData';

@@ -7,9 +7,8 @@
 	/** @param {import('$lib/customTypes').ImageData} image */
 	const deleteImage = async (image) => {
 		const confirmDelete = confirm(`Haluatko varmasti poistaa kuvan ${image.imageName}?`);
-		if (!confirmDelete) {
-			return;
-		}
+		if (!confirmDelete) return;
+
 		const deletionData = {
 			id: image._id,
 			imageKey: image.imageKey
@@ -25,7 +24,7 @@
 </script>
 
 <section>
-	<form method="POST" use:enhance enctype="multipart/form-data" action="?/upload">
+	<form method="POST" use:enhance enctype="multipart/form-data">
 		<label for="otsikko">Otsikko</label>
 		<input name="otsikko" type="text" />
 		<label for="kuvateksti">Kuvateksti</label>
