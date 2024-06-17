@@ -9,7 +9,7 @@ type imageData = {
 
 export interface album {
 	_id: string;
-	albumName: string;
+	name: string;
 	coverPhoto: string;
 	images: imageData[];
 }

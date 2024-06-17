@@ -5,7 +5,7 @@ import { MongoClient } from 'mongodb';
 
 /** @type {import('mongodb').Db | null} */
 let cachedDb = null;
-const dbName = dev ? 'Devbase' : 'Images';
+const dbName = dev ? 'Devbase' : 'Prodbase';
 
 export const connectToDatabase = async () => {
 	if (cachedDb) return cachedDb;
