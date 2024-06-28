@@ -6,13 +6,12 @@ const client = new S3Client({ region: 'eu-north-1' });
 /**
  * @param {string} bucket The name of the bucket
  * @param {string} key The key of the object
- * @param {string} album album key (path) of the object
  * @returns {Promise<string>} The signed URL
  */
-export const generateSignedUrl = async (bucket, album, key) => {
+export const generateSignedUrl = async (bucket, key) => {
 	const command = new GetObjectCommand({
 		Bucket: bucket,
-		Key: `${album}/${key}`
+		Key: key
 	});
 	const signedUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
 

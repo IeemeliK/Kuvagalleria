@@ -4,18 +4,19 @@ import { error } from '@sveltejs/kit';
 import { MongoClient } from 'mongodb';
 
 /** @type {import('mongodb').Db | null} */
-let cachedDb = null;
+let db;
+
+/** @type {import('mongodb').MongoClient | null} */
+let client;
 const dbName = dev ? 'Devbase' : 'Prodbase';
 
 export const connectToDatabase = async () => {
-	if (cachedDb) return cachedDb;
+	if (db) return db;
 
-	const client = await MongoClient.connect(MONGODB_URI);
-
-	cachedDb = client.db(dbName);
-
-	if (!cachedDb) error(500, 'Could not connect to database');
-	return cachedDb;
+	client = await MongoClient.connect(MONGODB_URI);
+	db = client.db(dbName);
+	if (!db) error(500, 'Could not connect to database');
+	return db;
 };
 
 export const collection = dev ? 'Devdata' : 'ImageData';

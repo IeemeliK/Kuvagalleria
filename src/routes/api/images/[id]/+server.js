@@ -27,3 +27,20 @@ export async function PUT({ request, params }) {
 		return error(500, e);
 	}
 }
+
+/** @type {import('./$types').RequestHandler} */
+export async function GET({ params, url }) {
+	const db = await connectToDatabase();
+	const albumId = /** @type {string} */ (url.searchParams.get('albumId'));
+
+	try {
+		const data = await db.collection(collection).findOne({
+			_id: ObjectId.createFromHexString(albumId),
+			'images._id': ObjectId.createFromHexString(params.id)
+		});
+		return json(data);
+	} catch (/** @type {any} */ e) {
+		console.error(e);
+		return error(500, e);
+	}
+}

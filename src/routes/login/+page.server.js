@@ -21,7 +21,7 @@ export const actions = {
 		if (!valid) return fail(400, { username, incorrect: true });
 
 		const token = jwt.sign({ user: username }, JWT_SECRET, { expiresIn: '3d' });
-		cookies.set('token', token, {
+		cookies.set('user', token, {
 			httpOnly: true,
 			secure: true,
 			sameSite: 'strict',

@@ -1,6 +1,6 @@
 <script>
-	import { enhance } from '$app/forms';
-	export let form;
+import { enhance } from '$app/forms';
+export let form;
 </script>
 
 <form method="POST" use:enhance>
