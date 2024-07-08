@@ -16,15 +16,10 @@ export const handle = async ({ event, resolve }) => {
 			return error(401, 'Unauthorized');
 		}
 		event.locals.user = null;
-		event.cookies.delete('user', { path: '/' });
 		throw redirect(302, '/login');
 	}
 
-	if (event.locals.user && event.url.pathname === '/login') {
-		throw redirect(302, '/');
-	}
-
-	if (token && !event.locals.user) {
+	if (token) {
 		let decoded;
 		try {
 			decoded = /** @type {JwtPayload} */ (jwt.verify(token, JWT_SECRET));
