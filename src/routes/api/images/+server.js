@@ -71,15 +71,11 @@ export async function POST({ request }) {
 	}
 }
 
-/**
- * @typedef {Object} updateDoc
- * @property {any} $set
- */
-
 /** @type {import('./$types').RequestHandler} */
 export async function PUT({ request }) {
 	const body = await request.json();
 
+	/** @type {import('mongodb').AnyBulkWriteOperation<any>[]} */
 	const bulkOperations = [];
 	for (const data of body) {
 		if (data.urlExpiresIn && data.urlExpiresIn < Date.now()) {
@@ -87,23 +83,14 @@ export async function PUT({ request }) {
 			data.urlExpiresIn = Date.now() + 3600000;
 		}
 
-		/** @type updateDoc */
 		const updateDoc = {
+			/** @type {Partial<import('$lib/customTypes').album>} */
 			$set: {}
 		};
 		for (const key in data) {
 			updateDoc.$set[/** @type {keyof import('$lib/customTypes').album} */ (key)] = data[key];
 		}
-		// const signedUrl = await generateSignedUrl(Bucket.bucket.bucketName, d.albumKey, d.imageKey);
-		// const updateDoc = {
-		// 	$set: {
-		// 		imageName: d.imageName,
-		// 		imageText: d.imageText,
-		// 		imageKey: d.imageKey,
-		// 		imageUrl: signedUrl,
-		// 		urlExpiresIn: Date.now() + 3600000
-		// 	}
-		// };
+
 		bulkOperations.push({
 			updateOne: {
 				filter: {

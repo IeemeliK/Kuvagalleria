@@ -8,22 +8,19 @@ const collection = db.collection(collectionName);
 /** @type {import('./$types').RequestHandler} */
 export async function PUT({ request, params }) {
 	const body = await request.json();
+	const filter = { _id: ObjectId.createFromHexString(params.id) };
+	const updateDoc = {
+		/** @type {Record<string, any>} */
+		$set: {}
+	};
+
+	for (const [key, value] of Object.entries(body)) {
+		updateDoc.$set[key] = value;
+	}
 
 	try {
-		const filter = { _id: ObjectId.createFromHexString(params.id) };
-		const updateDoc = {
-			$set: {
-				imageName: body.imageName,
-				imageText: body.imageText,
-				imageKey: body.imageKey,
-				imageUrl: body.imageUrl,
-				urlExpiresIn: body.urlExpiresIn
-			}
-		};
-
 		const res = await collection.updateOne(filter, updateDoc);
-
-		return json(res);
+		return json(res, { status: 200 });
 	} catch (/** @type {any}*/ e) {
 		console.error(e);
 		return error(500, e);
@@ -39,7 +36,7 @@ export async function GET({ params, url }) {
 			_id: ObjectId.createFromHexString(albumId),
 			'images._id': ObjectId.createFromHexString(params.id)
 		});
-		return json(data);
+		return json(data, { status: 200 });
 	} catch (/** @type {any} */ e) {
 		console.error(e);
 		return error(500, e);
