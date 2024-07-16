@@ -1,4 +1,4 @@
-import { connectToDatabase, collection } from '$lib/server/dbconn';
+import { connectToDatabase, collectionName } from '$lib/server/dbconn';
 import { error, json } from '@sveltejs/kit';
 import { ObjectId } from 'mongodb';
 
@@ -19,7 +19,7 @@ export async function PUT({ request, params }) {
 			}
 		};
 
-		const res = await db.collection(collection).updateOne(filter, updateDoc);
+		const res = await db.collection(collectionName).updateOne(filter, updateDoc);
 
 		return json(res);
 	} catch (/** @type {any}*/ e) {
@@ -34,7 +34,7 @@ export async function GET({ params, url }) {
 	const albumId = /** @type {string} */ (url.searchParams.get('albumId'));
 
 	try {
-		const data = await db.collection(collection).findOne({
+		const data = await db.collection(collectionName).findOne({
 			_id: ObjectId.createFromHexString(albumId),
 			'images._id': ObjectId.createFromHexString(params.id)
 		});

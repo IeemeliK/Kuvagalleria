@@ -1,21 +1,22 @@
 import { error, json } from '@sveltejs/kit';
-import { collection, connectToDatabase } from '$lib/server/dbconn';
-import { ObjectId } from 'mongodb';
+import { collectionName, connectToDatabase } from '$lib/server/dbconn';
+import { ObjectId, Collection } from 'mongodb';
 import { PutObjectCommand, S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Bucket } from 'sst/node/bucket';
 import { generateSignedUrl } from '$lib/server/helpers';
 
 const client = new S3Client({ region: 'eu-north-1' });
+const db = await connectToDatabase();
+
+/** @type Collection<import('$lib/customTypes').album[]> */
+const collection = db.collection(collectionName);
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
-	const db = await connectToDatabase();
-
 	const albumId = /** @type {string} */ (url.searchParams.get('albumId'));
 
 	try {
-		const data = await db
-			.collection(collection)
+		const data = await collection
 			.find({ _id: ObjectId.createFromHexString(albumId) }, { projection: { images: 1 } })
 			.toArray();
 		return json(data, { status: 200 });
@@ -27,8 +28,6 @@ export async function GET({ url }) {
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request }) {
-	const db = await connectToDatabase();
-
 	const formData = await request.formData();
 
 	const file = /** @type {File} */ (formData.get('file'));
@@ -56,13 +55,15 @@ export async function POST({ request }) {
 		imageText: formData.get('description'),
 		urlExpiresIn: Date.now() + 3600000,
 		imageUrl: signedUrl,
-		imageKey: imageKey
+		imageKey: imageKey,
+		createdAt: Date.now()
 	};
 
 	try {
-		const response = await db
-			.collection(collection)
-			.updateOne({ _id: ObjectId.createFromHexString(albumId) }, { $push: { images: imageData } });
+		const response = await collection.findOneAndUpdate(
+			{ _id: ObjectId.createFromHexString(albumId) },
+			{ $push: { images: imageData } }
+		);
 		return json(response, { status: 201 });
 	} catch (/** @type {any} */ e) {
 		console.error(e);
@@ -71,36 +72,27 @@ export async function POST({ request }) {
 }
 
 /**
- * @typedef {Object} Data
- * @property {string} [ imageName ]
- * @property {string} [ imageText ]
- * @property {string} [ imageKey ]
- * @property {string} [ imageUrl ]
- * @property {number} [ urlExpiresIn ]
- */
-
-/**
  * @typedef {Object} updateDoc
- * @property {Data} $set
+ * @property {any} $set
  */
 
 /** @type {import('./$types').RequestHandler} */
 export async function PUT({ request }) {
-	const db = await connectToDatabase();
 	const body = await request.json();
 
 	const bulkOperations = [];
 	for (const data of body) {
-		/** @type {updateDoc} */
-		const updateDoc = {
-			$set: {}
-		};
 		if (data.urlExpiresIn && data.urlExpiresIn < Date.now()) {
 			data.imageUrl = await generateSignedUrl(Bucket.bucket.bucketName, data.imageKey);
 			data.urlExpiresIn = Date.now() + 3600000;
 		}
+
+		/** @type updateDoc */
+		const updateDoc = {
+			$set: {}
+		};
 		for (const key in data) {
-			updateDoc.$set[/** @type {keyof Data} */ (key)] = data[key];
+			updateDoc.$set[/** @type {keyof import('$lib/customTypes').album} */ (key)] = data[key];
 		}
 		// const signedUrl = await generateSignedUrl(Bucket.bucket.bucketName, d.albumKey, d.imageKey);
 		// const updateDoc = {
@@ -124,7 +116,7 @@ export async function PUT({ request }) {
 	}
 
 	try {
-		const res = await db.collection(collection).bulkWrite(bulkOperations);
+		const res = await collection.bulkWrite(bulkOperations);
 		return json(res);
 	} catch (/** @type {any} */ e) {
 		console.error(e);
@@ -134,8 +126,6 @@ export async function PUT({ request }) {
 
 /** @type {import('./$types').RequestHandler} */
 export async function DELETE({ request }) {
-	const db = await connectToDatabase();
-
 	const body = await request.json();
 
 	const command = new DeleteObjectCommand({
@@ -150,10 +140,10 @@ export async function DELETE({ request }) {
 	}
 
 	try {
-		await db.collection(collection).deleteOne({ _id: ObjectId.createFromHexString(body.id) });
+		await collection.findOneAndDelete({ _id: ObjectId.createFromHexString(body.id) });
 		return new Response(null, { status: 204 });
 	} catch (/** @type {any} */ e) {
 		console.error(e);
-		return error(500, e);
+		throw error(500, e);
 	}
 }

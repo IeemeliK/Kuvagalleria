@@ -19,4 +19,4 @@ export const connectToDatabase = async () => {
 	return db;
 };
 
-export const collection = dev ? 'Devdata' : 'ImageData';
+export const collectionName = dev ? 'Devdata' : 'ImageData';
