@@ -1,4 +1,6 @@
+import { generateSignedUrl } from '$lib/server/helpers';
 import { error } from '@sveltejs/kit';
+import { Bucket } from 'sst/node/bucket';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch }) {
@@ -20,12 +22,14 @@ export async function load({ fetch }) {
 		const image = await imageData.json();
 
 		if (image.urlExpiresIn < Date.now()) {
+			const signedUrl = await generateSignedUrl(Bucket.bucket.bucketName, image.imageKey);
 			ops.push({
 				imageId: image._id,
 				albumId: d._id,
 				albumKey: d.name,
 				imageKey: image.imageKey,
-				urlExpiresIn: image.urlExpiresIn
+				imageUrl: signedUrl,
+				urlExpiresIn: Date.now() + 3600000
 			});
 		}
 	}

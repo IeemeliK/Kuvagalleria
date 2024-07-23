@@ -78,11 +78,6 @@ export async function PUT({ request }) {
 	/** @type {import('mongodb').AnyBulkWriteOperation<any>[]} */
 	const bulkOperations = [];
 	for (const data of body) {
-		if (data.urlExpiresIn && data.urlExpiresIn < Date.now()) {
-			data.imageUrl = await generateSignedUrl(Bucket.bucket.bucketName, data.imageKey);
-			data.urlExpiresIn = Date.now() + 3600000;
-		}
-
 		const updateDoc = {
 			/** @type {Partial<import('$lib/customTypes').album>} */
 			$set: {}
