@@ -24,8 +24,8 @@ export const actions = {
 		cookies.set('user', token, {
 			httpOnly: true,
 			secure: true,
-			sameSite: 'strict',
-			maxAge: 2592000,
+			sameSite: 'lax',
+			maxAge: 1000 * 60 * 60 * 24 * 3,
 			path: '/'
 		});
 
